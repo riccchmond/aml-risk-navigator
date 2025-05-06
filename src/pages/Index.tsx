@@ -15,9 +15,11 @@ import TransactionDetails from '@/components/TransactionDetails';
 import ModelPerformance from '@/components/ModelPerformance';
 import RiskDashboard from '@/components/RiskDashboard';
 import DashboardStats from '@/components/DashboardStats';
+import LoginPage from '@/components/LoginPage';
 
 const Index = () => {
   const { toast } = useToast();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // Simulator state
   const [transactionCount, setTransactionCount] = useState(2000);
@@ -31,10 +33,26 @@ const Index = () => {
   const [sars, setSars] = useState<SuspiciousActivityReport[]>([]);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   
-  // Generate initial data
+  // Check if user is logged in from session storage
   useEffect(() => {
-    generateData();
+    const loggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(loggedIn);
+    
+    // Generate initial data if logged in
+    if (loggedIn && transactions.length === 0) {
+      generateData();
+    }
   }, []);
+  
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    generateData();
+  };
+  
+  const handleLogout = () => {
+    sessionStorage.removeItem('isLoggedIn');
+    setIsLoggedIn(false);
+  };
   
   const generateData = () => {
     try {
@@ -124,9 +142,13 @@ const Index = () => {
     }
   };
   
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+  
   return (
     <div className="container py-6">
-      <Header />
+      <Header onLogout={handleLogout} />
       
       <SimulatorControls
         transactionCount={transactionCount}

@@ -1,12 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Transaction } from '@/lib/mockData';
-import { ShapValue, generateShapValues } from '@/lib/ml-models';
 import { format } from 'date-fns';
-import { AlertTriangle, Info } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { AlertTriangle, ArrowRight, Calendar, CircleDollarSign, Store, Tag } from 'lucide-react';
 
 interface TransactionDetailsProps {
   transaction: Transaction | null;
@@ -15,123 +13,109 @@ interface TransactionDetailsProps {
 const TransactionDetails: React.FC<TransactionDetailsProps> = ({ transaction }) => {
   if (!transaction) {
     return (
-      <Card className="h-[400px]">
+      <Card>
         <CardHeader>
           <CardTitle className="text-xl font-bold">Transaction Details</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-[300px] text-muted-foreground">
-          <div className="text-center">
-            <Info className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>Select a transaction to view details</p>
-          </div>
+        <CardContent className="flex items-center justify-center h-64 text-muted-foreground">
+          Select a transaction to view details
         </CardContent>
       </Card>
     );
   }
-
-  // Get SHAP values for model explainability
-  const shapValues: ShapValue[] = generateShapValues(transaction);
-  const maxAbsShap = Math.max(...shapValues.map(s => Math.abs(s.value)));
-
+  
   return (
-    <Card className="h-[400px] overflow-y-auto">
+    <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-bold">Transaction Details</CardTitle>
-          {transaction.isLaundering && (
-            <div className="flex items-center">
-              <AlertTriangle className="h-5 w-5 text-red-500 mr-1" />
-              <span className="text-red-500 font-medium">Suspicious Activity</span>
-            </div>
-          )}
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl font-bold flex items-center">
+            Transaction Details
+            {transaction.isLaundering && (
+              <Badge variant="destructive" className="ml-2">
+                {transaction.launderingType || 'Suspicious'}
+              </Badge>
+            )}
+          </CardTitle>
+          <div className="text-sm font-mono text-muted-foreground">{transaction.id}</div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Transaction ID</p>
-              <p className="font-semibold">{transaction.id}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <div className="text-sm font-medium text-muted-foreground">Date & Time</div>
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-2 text-primary" />
+                <span>{format(transaction.timestamp, 'PPpp')}</span>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Amount</p>
-              <p className="font-semibold">${transaction.amount.toFixed(2)}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Date & Time</p>
-              <p className="font-semibold">{format(transaction.timestamp, 'PPpp')}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Account</p>
-              <p className="font-semibold">{transaction.accountId}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Merchant Type</p>
-              <p className="font-semibold">{transaction.merchantType}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Status</p>
-              <p className={transaction.isLaundering ? "font-semibold text-red-500" : "font-semibold text-green-500"}>
-                {transaction.isLaundering ? "Suspicious" : "Normal"}
-              </p>
+            
+            <div className="space-y-1">
+              <div className="text-sm font-medium text-muted-foreground">Amount</div>
+              <div className="flex items-center">
+                <CircleDollarSign className="h-4 w-4 mr-2 text-primary" />
+                <span className="font-bold">${transaction.amount.toFixed(2)}</span>
+              </div>
             </div>
           </div>
           
-          {transaction.launderingType && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Suspicious Activity Type</p>
-              <p className="font-semibold text-red-500">{transaction.launderingType}</p>
+          <div className="space-y-1">
+            <div className="text-sm font-medium text-muted-foreground">Account ID</div>
+            <div className="font-mono">{transaction.accountId}</div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <div className="text-sm font-medium text-muted-foreground">Source</div>
+              <div className="font-medium">{transaction.source}</div>
+            </div>
+            
+            <div className="space-y-1">
+              <div className="text-sm font-medium text-muted-foreground">Destination</div>
+              <div className="font-medium">{transaction.destination}</div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <div className="text-sm font-medium text-muted-foreground">Merchant Type</div>
+              <div className="flex items-center">
+                <Store className="h-4 w-4 mr-2 text-primary" />
+                <span>{transaction.merchantType}</span>
+              </div>
+            </div>
+            
+            <div className="space-y-1">
+              <div className="text-sm font-medium text-muted-foreground">Purpose</div>
+              <div className="flex items-center">
+                <Tag className="h-4 w-4 mr-2 text-primary" />
+                <span>{transaction.purpose}</span>
+              </div>
+            </div>
+          </div>
+          
+          {transaction.isLaundering && (
+            <div className="mt-6 p-3 bg-red-50 border border-red-100 rounded-md">
+              <div className="flex items-center text-red-600">
+                <AlertTriangle className="h-5 w-5 mr-2" />
+                <span className="font-medium">Risk Factors</span>
+              </div>
+              <ul className="mt-2 list-disc list-inside text-sm">
+                {transaction.launderingType === 'Smurfing' && (
+                  <li>Multiple small transactions in short period</li>
+                )}
+                {transaction.launderingType === 'Layering' && (
+                  <li>Complex chain of transfers between accounts</li>
+                )}
+                {transaction.launderingType === 'Large Amount' && (
+                  <li>Unusually large transaction amount (${transaction.amount.toFixed(2)})</li>
+                )}
+                {transaction.amount > 8500 && (
+                  <li>Transaction amount exceeds reporting threshold ($8,500)</li>
+                )}
+              </ul>
             </div>
           )}
-          
-          <Separator />
-          
-          <div>
-            <h3 className="font-semibold mb-3">Model Explanation (SHAP Values)</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              The chart below shows how different features contributed to the risk score prediction.
-              Red bars indicate features that increased the risk score, while blue bars decreased it.
-            </p>
-            
-            <div className="space-y-3">
-              {shapValues.map((shap, i) => (
-                <div key={i} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{shap.feature}</span>
-                    <span className={`text-sm font-medium ${shap.value > 0 ? 'text-red-600' : 'text-blue-600'}`}>
-                      {shap.value > 0 ? '+' : ''}{shap.value.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-1/2 h-3 flex justify-end">
-                      {shap.value < 0 && (
-                        <div 
-                          className="bg-blue-500 rounded-sm" 
-                          style={{ 
-                            width: `${(Math.abs(shap.value) / maxAbsShap) * 100}%`, 
-                            maxWidth: '100%',
-                            height: '100%' 
-                          }}
-                        />
-                      )}
-                    </div>
-                    <div className="w-1/2 h-3">
-                      {shap.value > 0 && (
-                        <div 
-                          className="bg-red-500 rounded-sm" 
-                          style={{ 
-                            width: `${(Math.abs(shap.value) / maxAbsShap) * 100}%`, 
-                            maxWidth: '100%',
-                            height: '100%' 
-                          }}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>
