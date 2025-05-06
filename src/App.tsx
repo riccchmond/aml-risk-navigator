@@ -7,10 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import TransactionsPage from "./pages/TransactionsPage";
-import AccountsPage from "./pages/AccountsPage";
-import ReportsPage from "./pages/ReportsPage";
-import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
