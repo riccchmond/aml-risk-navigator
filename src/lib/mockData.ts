@@ -9,9 +9,6 @@ export interface Transaction {
   accountId: string;
   isLaundering: boolean;
   launderingType?: string;
-  source: string;
-  destination: string;
-  purpose: string;
 }
 
 export interface Account {
@@ -44,12 +41,6 @@ const generateAccounts = (count: number): Account[] => {
   }));
 };
 
-// Generate transaction purposes
-const transactionPurposes = [
-  'Purchase', 'Bill Payment', 'Salary', 'Investment', 'Loan Payment',
-  'Rent', 'Gift', 'Services', 'Subscription', 'Other'
-];
-
 // Generate synthetic transaction data with configurable laundering patterns
 export const generateTransactions = (
   count: number,
@@ -78,26 +69,14 @@ export const generateTransactions = (
   // Generate normal transactions
   for (let i = 0; i < normalCount; i++) {
     const timestamp = subMinutes(new Date(), Math.floor(Math.random() * 60 * 24 * 7)); // Last week
-    const sourceAccount = accounts[Math.floor(Math.random() * accounts.length)];
-    let destAccount;
-    do {
-      destAccount = accounts[Math.floor(Math.random() * accounts.length)];
-    } while (destAccount.id === sourceAccount.id);
-    
-    const amount = Math.floor(Math.random() * 500) + 50; // $50-$550
-    const merchantType = merchantTypes[Math.floor(Math.random() * merchantTypes.length)];
-    const purpose = transactionPurposes[Math.floor(Math.random() * transactionPurposes.length)];
     
     transactions.push({
       id: `TX${i}`,
-      amount,
+      amount: Math.floor(Math.random() * 500) + 50, // $50-$550
       timestamp,
-      merchantType,
-      accountId: sourceAccount.id,
-      isLaundering: false,
-      source: sourceAccount.name,
-      destination: merchantType === 'Transfer' ? destAccount.name : merchantType,
-      purpose
+      merchantType: merchantTypes[Math.floor(Math.random() * merchantTypes.length)],
+      accountId: accounts[Math.floor(Math.random() * accounts.length)].id,
+      isLaundering: false
     });
   }
   
@@ -105,23 +84,16 @@ export const generateTransactions = (
   for (let i = 0; i < smurfingCount; i++) {
     const timestamp = subMinutes(new Date(), Math.floor(Math.random() * 60 * 24 * 3)); // Last 3 days
     // Select same account for a group of transactions
-    const sourceAccountIndex = Math.floor(Math.random() * accounts.length);
-    let destAccountIndex;
-    do {
-      destAccountIndex = Math.floor(Math.random() * accounts.length);
-    } while (destAccountIndex === sourceAccountIndex);
+    const accountIndex = Math.floor(Math.random() * accounts.length);
     
     transactions.push({
       id: `TX${normalCount + i}`,
       amount: Math.floor(Math.random() * 45) + 5, // $5-$50 small amounts
       timestamp,
       merchantType: 'Transfer',
-      accountId: accounts[sourceAccountIndex].id,
+      accountId: accounts[accountIndex].id,
       isLaundering: true,
-      launderingType: 'Smurfing',
-      source: accounts[sourceAccountIndex].name,
-      destination: accounts[destAccountIndex].name,
-      purpose: 'Transfer'
+      launderingType: 'Smurfing'
     });
   }
   
@@ -133,30 +105,16 @@ export const generateTransactions = (
     const sourceAccountIndex = Math.floor(Math.random() * (accounts.length / 2));
     const targetAccountIndex = Math.floor(Math.random() * (accounts.length / 2)) + accounts.length / 2;
     
-    // Add high value transactions (for flagging)
-    const amount = Math.floor(Math.random() * 2000) + 1000; // $1000-$3000 larger amounts
-    
     transactions.push({
       id: `TX${currentIndex + i}`,
-      amount,
+      amount: Math.floor(Math.random() * 2000) + 1000, // $1000-$3000 larger amounts
       timestamp,
       merchantType: 'Transfer',
       accountId: accounts[i % 2 === 0 ? sourceAccountIndex : targetAccountIndex].id,
       isLaundering: true,
-      launderingType: 'Layering',
-      source: accounts[i % 2 === 0 ? sourceAccountIndex : targetAccountIndex].name,
-      destination: accounts[i % 2 === 0 ? targetAccountIndex : sourceAccountIndex].name,
-      purpose: 'Investment'
+      launderingType: 'Layering'
     });
   }
-  
-  // Flag transactions above 8500
-  transactions.forEach(tx => {
-    if (tx.amount > 8500) {
-      tx.isLaundering = true;
-      tx.launderingType = tx.launderingType || 'Large Amount';
-    }
-  });
   
   // Sort transactions by timestamp (newest first)
   transactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
@@ -190,16 +148,7 @@ export const generateSARs = (
     // Determine predominant laundering type
     const smurfingCount = txs.filter(tx => tx.launderingType === 'Smurfing').length;
     const layeringCount = txs.filter(tx => tx.launderingType === 'Layering').length;
-    const largeAmountCount = txs.filter(tx => tx.launderingType === 'Large Amount').length;
-    
-    let predominantType = 'Unknown';
-    if (smurfingCount > layeringCount && smurfingCount > largeAmountCount) {
-      predominantType = 'Smurfing';
-    } else if (layeringCount > smurfingCount && layeringCount > largeAmountCount) {
-      predominantType = 'Layering';
-    } else if (largeAmountCount > 0) {
-      predominantType = 'Large Amount';
-    }
+    const predominantType = smurfingCount > layeringCount ? 'Smurfing' : 'Layering';
     
     return {
       id: `SAR${i+1}`,

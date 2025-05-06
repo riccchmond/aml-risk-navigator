@@ -38,10 +38,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
       return (
         tx.id.toLowerCase().includes(searchLower) ||
         tx.accountId.toLowerCase().includes(searchLower) ||
-        tx.merchantType.toLowerCase().includes(searchLower) ||
-        tx.source.toLowerCase().includes(searchLower) ||
-        tx.destination.toLowerCase().includes(searchLower) ||
-        tx.purpose.toLowerCase().includes(searchLower)
+        tx.merchantType.toLowerCase().includes(searchLower)
       );
     }
     
@@ -82,15 +79,14 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border overflow-x-auto">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px]">ID</TableHead>
+                <TableHead className="w-32">ID</TableHead>
                 <TableHead>Date & Time</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Destination</TableHead>
-                <TableHead>Purpose</TableHead>
+                <TableHead>Account</TableHead>
+                <TableHead>Merchant</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="w-20 text-center">Status</TableHead>
               </TableRow>
@@ -98,7 +94,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
             <TableBody>
               {filteredTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                     No transactions match your filters
                   </TableCell>
                 </TableRow>
@@ -112,9 +108,15 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                   >
                     <TableCell className="font-medium">{transaction.id}</TableCell>
                     <TableCell>{format(transaction.timestamp, 'MMM d, h:mm a')}</TableCell>
-                    <TableCell>{transaction.source}</TableCell>
-                    <TableCell>{transaction.destination}</TableCell>
-                    <TableCell>{transaction.purpose}</TableCell>
+                    <TableCell>{transaction.accountId}</TableCell>
+                    <TableCell>
+                      {transaction.merchantType}
+                      {transaction.launderingType && (
+                        <Badge variant="destructive" className="ml-2">
+                          {transaction.launderingType}
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right">${transaction.amount.toFixed(2)}</TableCell>
                     <TableCell className="text-center">
                       {transaction.isLaundering ? (
