@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { pipeline, env } from '@huggingface/transformers';
-import type { TextClassificationPipeline, TextClassificationOutput } from '@huggingface/transformers';
 
 interface HuggingfaceModelProps {
   modelId: string;
@@ -33,9 +32,7 @@ const HuggingfaceModel: React.FC<HuggingfaceModelProps> = ({
       
       try {
         // Create pipeline with the specified task
-        const classify = await pipeline(task, modelId, {
-          quantized: false,
-        });
+        const classify = await pipeline(task, modelId);
         
         // Run inference
         const result = await classify(input);
@@ -44,21 +41,20 @@ const HuggingfaceModel: React.FC<HuggingfaceModelProps> = ({
         let processedResults: { label: string; score: number }[];
         
         if (Array.isArray(result)) {
-          if (typeof result[0] === 'object' && 'label' in result[0] && 'score' in result[0]) {
-            processedResults = result.map(item => ({
-              label: String(item.label),
-              score: Number(item.score)
-            }));
-          } else {
-            // Handle unexpected format
-            processedResults = [];
-            setError('Unexpected result format');
-          }
-        } else if (typeof result === 'object' && 'label' in result && 'score' in result) {
-          processedResults = [{ 
-            label: String(result.label), 
-            score: Number(result.score) 
-          }];
+          // Handle array result
+          processedResults = result.map(item => {
+            if (typeof item === 'object' && item !== null) {
+              const label = 'label' in item ? String(item.label) : 'unknown';
+              const score = 'score' in item ? Number(item.score) : 0;
+              return { label, score };
+            }
+            return { label: 'unknown', score: 0 };
+          });
+        } else if (typeof result === 'object' && result !== null) {
+          // Handle single object result
+          const label = 'label' in result ? String(result.label) : 'unknown';
+          const score = 'score' in result ? Number(result.score) : 0;
+          processedResults = [{ label, score }];
         } else {
           // Handle unexpected format
           processedResults = [];
