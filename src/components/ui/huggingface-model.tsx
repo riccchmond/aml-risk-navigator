@@ -9,6 +9,13 @@ interface HuggingfaceModelProps {
   onResult?: (result: { label: string; score: number }[]) => void;
 }
 
+// Define interfaces for the possible model outputs
+interface ModelResultItem {
+  label: string;
+  score: number;
+  [key: string]: any; // Allow for other properties
+}
+
 // Fix environment
 env.allowLocalModels = true;
 env.useBrowserCache = true;
@@ -42,18 +49,19 @@ const HuggingfaceModel: React.FC<HuggingfaceModelProps> = ({
         
         if (Array.isArray(result)) {
           // Handle array result
-          processedResults = result.map(item => {
+          processedResults = result.map((item: any) => {
             if (typeof item === 'object' && item !== null) {
-              const label = 'label' in item ? String(item.label) : 'unknown';
-              const score = 'score' in item ? Number(item.score) : 0;
+              const label = item.label !== undefined ? String(item.label) : 'unknown';
+              const score = item.score !== undefined ? Number(item.score) : 0;
               return { label, score };
             }
             return { label: 'unknown', score: 0 };
           });
         } else if (typeof result === 'object' && result !== null) {
           // Handle single object result
-          const label = 'label' in result ? String(result.label) : 'unknown';
-          const score = 'score' in result ? Number(result.score) : 0;
+          const resultObj = result as any;
+          const label = resultObj.label !== undefined ? String(resultObj.label) : 'unknown';
+          const score = resultObj.score !== undefined ? Number(resultObj.score) : 0;
           processedResults = [{ label, score }];
         } else {
           // Handle unexpected format
